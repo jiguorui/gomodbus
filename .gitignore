@@ -20,4 +20,4 @@
 *.tlog
 *.log
 *.bak
-Builds/*
+bin/*
