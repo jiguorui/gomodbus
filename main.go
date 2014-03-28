@@ -5,9 +5,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
+	"adu"
 )
 
 func checkError(err error) bool {
@@ -33,34 +35,54 @@ R:
 	return end, nil
 }
 
+func procReq(req_pdu, rsp_pdu []byte) (byte, error) {
+	funccode := req_pdu[0]
+	if funccode == 3 {
+		rsp_pdu[0] = funccode
+		//startAddr := rsp_pdu[1] * 0x80 + rsp_pdu[2]
+		qtyR := req_pdu[3]*0x80 + req_pdu[4]
+		rsp_pdu[1] = qtyR * 2
+		return qtyR*2 + 2, nil
+	}
+	rsp_pdu[0] = 0x80 + funccode
+	rsp_pdu[1] = 1
+	return 2, errors.New("Invalid function code")
+}
+
 func handleConn(c net.Conn) {
-	//see [1], max size of PDU is 260?
-	var req_pdu [261]byte
-	var rsp_pdu [261]byte
+	//see [1], max size of ADU is 260?
+	//indication(request of client side) and response Application Data Unit(ADU)
+	var indADU [261]byte
+	var rspADU [261]byte
+
+	MBAP * m = &MBAP{}
+	m.Init(indADU[0:])
 
 	defer c.Close()
 
 	for {
 		//read MBAP header, see [1]
-		_, err := readBytes(c, req_pdu[0:7])
+		_, err := readBytes(c, indADU[0:7])
 		if checkError(err) {
 			break
 		}
 		//read data
-		dataLen := req_pdu[5]
-		_, err = readBytes(c, req_pdu[7:7+dataLen-1])
+		dataLen := indADU[5] + 7
+		_, err = readBytes(c, indADU[7:dataLen-1])
 		if checkError(err) {
 			break
 		}
 
-		funccode := req_pdu[7]
-		//response
-		copy(rsp_pdu[0:7], req_pdu[0:7])
+		copy(rspADU[0:7], indADU[0:7])
 
-		rsp_pdu[5] = 3
-		rsp_pdu[7] = 0x83
-		rsp_pdu[8] = 3
-		_, err = c.Write(rsp_pdu[0:9])
+		n, err := procReq(indADU[7:dataLen], rspADU[7:])
+		//set MBAP header's 'length' byte
+		rspADU[5] = n + 1
+		if err != nil {
+			log.Println(err)
+		}
+		//err or not, just write rsp to client
+		_, err = c.Write(rspADU[0 : n+7])
 		if checkError(err) {
 			break
 		}
