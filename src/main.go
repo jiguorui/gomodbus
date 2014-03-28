@@ -39,9 +39,9 @@ func procReq(req_pdu, rsp_pdu []byte) (byte, error) {
 	if funccode == 3 {
 		rsp_pdu[0] = funccode
 		//startAddr := rsp_pdu[1] * 0x80 + rsp_pdu[2]
-		qtyR := req_pdu[3] * 0x80 + req_pdu[4]
+		qtyR := req_pdu[3]*0x80 + req_pdu[4]
 		rsp_pdu[1] = qtyR * 2
-		return qtyR * 2 + 2, nil
+		return qtyR*2 + 2, nil
 	}
 	rsp_pdu[0] = 0x80 + funccode
 	rsp_pdu[1] = 1
@@ -78,7 +78,7 @@ func handleConn(c net.Conn) {
 			log.Println(err)
 		}
 		//err or not, just write rsp to client
-		_, err = c.Write(rspADU[0:n+7])
+		_, err = c.Write(rspADU[0 : n+7])
 		if checkError(err) {
 			break
 		}
