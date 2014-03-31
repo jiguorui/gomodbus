@@ -20,14 +20,14 @@ R:
 	return end, nil
 }
 
-type Modbus struct {
+type MbConn struct {
 	c              net.Conn
 	b1, b2         []byte
 	reqADU, rspADU *MbADU
 	reqPDU         *MbReqPDU
 }
 
-func NewModbus(c net.Conn, b1, b2 []byte) (*Modbus, error) {
+func NewMbConn(c net.Conn, b1, b2 []byte) (*MbConn, error) {
 	if len(b1) < 260 || len(b2) < 260 {
 		return nil, errors.New("buffer size too small")
 	}
@@ -45,11 +45,11 @@ func NewModbus(c net.Conn, b1, b2 []byte) (*Modbus, error) {
 		return nil, err
 	}
 
-	m := &Modbus{c, b1, b2, reqADU, rspADU, reqPDU}
+	m := &MbConn{c, b1, b2, reqADU, rspADU, reqPDU}
 	return m, nil
 }
 
-func (m *Modbus) StepHandle() error {
+func (m *MbConn) StepHandle() error {
 	_, err := readBytes(m.c, m.b1[0:7])
 	if err != nil {
 		return err
