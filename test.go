@@ -18,4 +18,11 @@ func main() {
 	c, s, n := m2.Decode()
 	fmt.Printf("%d, %d, %d\n", c, s, n)
 	fmt.Printf("%d, %d, %d\n", b[7], b[9], b[11])
+
+	srv, err := modbus.NewServer(":502")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer srv.Close()
+	srv.Loop()
 }
