@@ -20,36 +20,36 @@ R:
 	return end, nil
 }
 
-type MbConn struct {
+type Conn struct {
 	c              net.Conn
 	b1, b2         []byte
-	reqADU, rspADU *MbADU
-	reqPDU         *MbReqPDU
+	reqADU, rspADU *ADU
+	reqPDU         *PDU
 }
 
-func NewMbConn(c net.Conn, b1, b2 []byte) (*MbConn, error) {
+func NewConn(c net.Conn, b1, b2 []byte) (*Conn, error) {
 	if len(b1) < 260 || len(b2) < 260 {
 		return nil, errors.New("buffer size too small")
 	}
 
-	reqADU, err := NewMbADU(b1[0:7])
+	reqADU, err := NewADU(b1[0:7])
 	if err != nil {
 		return nil, err
 	}
-	rspADU, err := NewMbADU(b2[0:7])
+	rspADU, err := NewADU(b2[0:7])
 	if err != nil {
 		return nil, err
 	}
-	reqPDU, err := NewMbReqPDU(b1[7:12])
+	reqPDU, err := NewPDU(b1[7:12])
 	if err != nil {
 		return nil, err
 	}
 
-	m := &MbConn{c, b1, b2, reqADU, rspADU, reqPDU}
+	m := &Conn{c, b1, b2, reqADU, rspADU, reqPDU}
 	return m, nil
 }
 
-func (m *MbConn) StepHandle() error {
+func (m *Conn) StepHandle() error {
 	_, err := readBytes(m.c, m.b1[0:7])
 	if err != nil {
 		return err

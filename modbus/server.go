@@ -15,7 +15,7 @@ func handleConn(c net.Conn) {
 
 	defer c.Close()
 
-	m, _ := NewModbus(c, b1[0:], b2[0:])
+	m, _ := NewConn(c, b1[0:], b2[0:])
 
 	for {
 		err := m.StepHandle()
@@ -46,4 +46,5 @@ func (s *Server) DoLoop() error {
 		}
 		go handleConn(c)
 	}
+	return nil
 }
